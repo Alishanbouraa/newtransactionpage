@@ -1,0 +1,462 @@
+Volume serial number is 5688-0C4D
+C:.
+│   .gitignore
+│   QuickTechSystems.sln
+│
+├───QuickTechSystems
+│   │   App.config
+│   │   app.ico
+│   │   App.xaml
+│   │   App.xaml.cs
+│   │   appsettings.json
+│   │   AssemblyInfo.cs
+│   │   GlobalUsings.cs
+│   │   MainWindow.xaml
+│   │   MainWindow.xaml.cs
+│   │   QuickTechSystems.csproj
+│   │   QuickTechSystems.csproj.user
+│   │   README.txt
+│   │
+│   ├───Commands
+│   │       RelayCommand.cs
+│   │
+│   ├───Controls
+│   │       AutoCompleteTextBox.xaml
+│   │       AutoCompleteTextBox.xaml.cs
+│   │
+│   ├───Converters
+│   │       BooleanToGridLengthConverter.cs
+│   │       BooleanToVisibilityConverter.cs
+│   │       BooleanToVisibilityValueConverter.cs
+│   │       BoolToColorConverter.cs
+│   │       BoolToTextConverter.cs
+│   │       ByteArrayToImageConverter.cs
+│   │       ByteArrayToImageSourceConverter.cs
+│   │       CategoryHighlightConverter.cs
+│   │       CurrencyConverter.cs
+│   │       CustomerSpecificPriceConverter.cs
+│   │       DecimalComparisonConverter.cs
+│   │       DecimalConverter.cs
+│   │       DecimalToBoolConverter.cs
+│   │       EmptyStringToVisibilityConverter.cs
+│   │       EqualityConverter.cs
+│   │       FilePathToImageConverter.cs
+│   │       GreaterThanConverter.cs
+│   │       IndexConverter.cs
+│   │       IntToEllipsisConverter.cs
+│   │       IntZeroToBoolConverter.cs
+│   │       InverseBooleanConverter.cs
+│   │       InverseBooleanToVisibilityConverter.cs
+│   │       InverseNullToVisibilityConverter.cs
+│   │       InvoiceStatusToBrushConverter.cs
+│   │       IsResolvedConverter.cs
+│   │       LessThanConverter.cs
+│   │       LessThanValueConverter.cs
+│   │       LessThanZeroConverter.cs
+│   │       LocalStringToVisibilityConverter.cs
+│   │       MultiValueStockToBoxesConverter.cs
+│   │       NegativeValueConverter.cs
+│   │       NotEqualToVisibilityConverter.cs
+│   │       NotEqualValueConverter.cs
+│   │       NullToBooleanConverter.cs
+│   │       NullToFalseConverter.cs
+│   │       NullToVisibilityConverter.cs
+│   │       PageInfoConverter.cs
+│   │       PaymentButtonVisibilityConverter.cs
+│   │       PaymentTypeToVisibilityConverter.cs
+│   │       PositiveIntToBooleanConverter.cs
+│   │       PriceChangeConverter.cs
+│   │       PriceComparisonConverter.cs
+│   │       ProductCostMultiConverter.cs
+│   │       ProductTotalCostConverter.cs
+│   │       ProductTotalProfitConverter.cs
+│   │       ProductTotalValueConverter.cs
+│   │       ProfitColorConverter.cs
+│   │       RestaurantModeColumnWidthConverter.cs
+│   │       StockToBoxesConverter.cs
+│   │       StringIsNotEmptyConverter.cs
+│   │       StringToVisibilityConverter.cs
+│   │       SumAmountConverter.cs
+│   │       TableStatusColorConverter.cs
+│   │       TitleConverter.cs
+│   │       TransactionTypeToColorConverter.cs
+│   │
+│   ├───Extensions
+│   │       ProductExtensions.cs
+│   │       UIElementExtensions.cs
+│   │
+│   ├───Helpers
+│   │       GridLengthAnimation.cs
+│   │       LanguageManager.cs
+│   │
+│   ├───Properties
+│   │   └───PublishProfiles
+│   │           FolderProfile.pubxml
+│   │           FolderProfile.pubxml.user
+│   │
+│   ├───Resources
+│   │   ├───Dictionaries
+│   │   │   └───Languages
+│   │   │           ar-SA.xaml
+│   │   │           en-US.xaml
+│   │   │           fr-FR.xaml
+│   │   │
+│   │   └───Images
+│   ├───Services
+│   │       DialogService.cs
+│   │       InputDialogService.cs
+│   │       IWindowService.cs
+│   │       WindowService.cs
+│   │
+│   ├───Utilities
+│   │       UIHelpers.cs
+│   │
+│   ├───ViewModels
+│   │       BulkMainStockViewModel.cs
+│   │       CashDrawerPromptViewModel.cs
+│   │       CategoryViewModel.cs
+│   │       CustomerViewModel.cs
+│   │       DamagedGoodsViewModel.cs
+│   │       DashboardViewModel.cs
+│   │       DrawerViewModel.Commands.cs
+│   │       DrawerViewModel.cs
+│   │       DrawerViewModel.Events.cs
+│   │       DrawerViewModel.Finance.cs
+│   │       DrawerViewModel.Properties.cs
+│   │       DrawerViewModel.Reports.cs
+│   │       DrawerViewModel.Transactions.cs
+│   │       DrawerViewModel.Updates.cs
+│   │       EmployeeViewModel.cs
+│   │       ExpenseViewModel.cs
+│   │       LoginViewModel.cs
+│   │       LowStockHistoryViewModel.cs
+│   │       MainStockViewModel.BarcodeOperations.cs
+│   │       MainStockViewModel.Commands.cs
+│   │       MainStockViewModel.cs
+│   │       MainStockViewModel.DataOperations.cs
+│   │       MainStockViewModel.Events.cs
+│   │       MainStockViewModel.TransferOperations.cs
+│   │       MainStockViewModel.UI.cs
+│   │       MainViewModel.cs
+│   │       ProductViewModel.cs
+│   │       ProfitViewModel.cs
+│   │       QuoteViewModel.cs
+│   │       SettingsViewModel.cs
+│   │       SplashScreenViewModel.cs
+│   │       SupplierInvoiceViewModel.cs
+│   │       SupplierViewModel.cs
+│   │       SystemPreferencesViewModel.cs
+│   │       TableManagementViewModel.cs
+│   │       TransactionHistoryViewModel.cs
+│   │       ViewModelBase.cs
+│   │       WindowManager.cs
+│   │
+│   └───Views
+│           BatchBarcodePrintWindow.xaml
+│           BatchBarcodePrintWindow.xaml.cs
+│           BulkMainStockDialog.xaml
+│           BulkMainStockDialog.xaml.cs
+│           CashDrawerPromptWindow.xaml
+│           CashDrawerPromptWindow.xaml.cs
+│           CategoryDetailsWindow.xaml
+│           CategoryDetailsWindow.xaml.cs
+│           CategoryView.xaml
+│           CategoryView.xaml.cs
+│           CustomerDetailsWindow.xaml
+│           CustomerDetailsWindow.xaml.cs
+│           CustomerView.xaml
+│           CustomerView.xaml.cs
+│           DamagedGoodsPopup.xaml
+│           DamagedGoodsPopup.xaml.cs
+│           DamagedGoodsProductSearch.xaml
+│           DamagedGoodsProductSearch.xaml.cs
+│           DamagedGoodsView.xaml
+│           DamagedGoodsView.xaml.cs
+│           DashboardView.xaml
+│           DashboardView.xaml.cs
+│           DrawerSummaryWindow.xaml
+│           DrawerSummaryWindow.xaml.cs
+│           DrawerView.xaml
+│           DrawerView.xaml.cs
+│           EmployeeView.xaml
+│           EmployeeView.xaml.cs
+│           EmployeeWindow.xaml
+│           EmployeeWindow.xaml.cs
+│           ExpenseView.xaml
+│           ExpenseView.xaml.cs
+│           ExpenseWindow.xaml
+│           ExpenseWindow.xaml.cs
+│           ImagePreviewWindow.xaml
+│           ImagePreviewWindow.xaml.cs
+│           InputDialog.xaml
+│           InputDialog.xaml.cs
+│           LoginView.xaml
+│           LoginView.xaml.cs
+│           LowStockHistoryView.xaml
+│           LowStockHistoryView.xaml.cs
+│           MainStockDetailsWindow.xaml
+│           MainStockDetailsWindow.xaml.cs
+│           MainStockView.xaml
+│           MainStockView.xaml.cs
+│           PaymentEditWindow.xaml
+│           PaymentEditWindow.xaml.cs
+│           PaymentHistoryWindow.xaml
+│           PaymentHistoryWindow.xaml.cs
+│           PaymentWindow.xaml
+│           PaymentWindow.xaml.cs
+│           ProductDetailsWindow.xaml
+│           ProductDetailsWindow.xaml.cs
+│           ProductPricesWindow.xaml
+│           ProductPricesWindow.xaml.cs
+│           ProductSearchPopupForDamaged.xaml
+│           ProductSearchPopupForDamaged.xaml.cs
+│           ProductView.xaml
+│           ProductView.xaml.cs
+│           ProfitSummaryWindow.xaml
+│           ProfitSummaryWindow.xaml.cs
+│           ProfitView.xaml
+│           ProfitView.xaml.cs
+│           QuantityDialog.xaml
+│           QuantityDialog.xaml.cs
+│           QuickCategoryDialogWindow.xaml
+│           QuickCategoryDialogWindow.xaml.cs
+│           QuickSupplierDialogWindow.xaml
+│           QuickSupplierDialogWindow.xaml.cs
+│           QuickSupplierInvoiceDialog.xaml
+│           QuickSupplierInvoiceDialog.xaml.cs
+│           QuoteView.xaml
+│           QuoteView.xaml.cs
+│           SalaryWindow.xaml
+│           SalaryWindow.xaml.cs
+│           SettingsView.xaml
+│           SettingsView.xaml.cs
+│           SettlePaymentSupplierWindow.xaml
+│           SettlePaymentSupplierWindow.xaml.cs
+│           SplashScreenView.xaml
+│           SplashScreenView.xaml.cs
+│           SupplierDetailsWindow.xaml
+│           SupplierDetailsWindow.xaml.cs
+│           SupplierInvoiceCreateWindow.xaml
+│           SupplierInvoiceCreateWindow.xaml.cs
+│           SupplierInvoiceDetailsWindow.xaml
+│           SupplierInvoiceDetailsWindow.xaml.cs
+│           SupplierInvoicePaymentHistoryWindow.xaml
+│           SupplierInvoicePaymentHistoryWindow.xaml.cs
+│           SupplierInvoiceView.xaml
+│           SupplierInvoiceView.xaml.cs
+│           SupplierPaymentWindow.xaml
+│           SupplierPaymentWindow.xaml.cs
+│           SupplierTransactionPopup.xaml
+│           SupplierTransactionPopup.xaml.cs
+│           SupplierTransactionsHistoryWindow.xaml
+│           SupplierTransactionsHistoryWindow.xaml.cs
+│           SupplierView.xaml
+│           SupplierView.xaml.cs
+│           SystemPreferencesView.xaml
+│           SystemPreferencesView.xaml.cs
+│           TableManagementView.xaml
+│           TableManagementView.xaml.cs
+│           TransactionDetailsPopup.xaml
+│           TransactionDetailsPopup.xaml.cs
+│           TransactionHistoryView.xaml
+│           TransactionHistoryView.xaml.cs
+│           TransactionPopup.xaml
+│           TransactionPopup.xaml.cs
+│
+├───QuickTechSystems.Application
+│   │   Class1.cs
+│   │   GlobalUsings.cs
+│   │   QuickTechSystems.Application.csproj
+│   │
+│   ├───DTOs
+│   │       ActivityLogDTO.cs
+│   │       BaseDTO.cs
+│   │       BusinessSettingDTO.cs
+│   │       CategoryDTO.cs
+│   │       CustomerDTO.cs
+│   │       CustomerProductPriceDTO.cs
+│   │       CustomerProductPriceViewModel.cs
+│   │       DamagedGoodsDTO.cs
+│   │       DrawerDTO.cs
+│   │       DrawerTransactionDTO.cs
+│   │       EmployeeDTO.cs
+│   │       EmployeeSalaryTransactionDTO.cs
+│   │       ExpenseDTO.cs
+│   │       InventoryHistoryDTO.cs
+│   │       InventoryTransferDTO.cs
+│   │       LowStockHistoryDTO.cs
+│   │       MainStockDTO.cs
+│   │       ProductDTO.cs
+│   │       ProfitDetailDTO.cs
+│   │       QuoteDTO.cs
+│   │       RestaurantTableDTO.cs
+│   │       SupplierDTO.cs
+│   │       SupplierInvoiceDetailDTO.cs
+│   │       SupplierInvoiceDTO.cs
+│   │       SupplierTransactionDTO.cs
+│   │       SystemPreferenceDTO.cs
+│   │       TransactionDetailDTO.cs
+│   │       TransactionDTO.cs
+│   │
+│   ├───Events
+│   │       ApplicationModeChangedEvent.cs
+│   │       DomainEvents.cs
+│   │       DrawerUpdateEvent.cs
+│   │       EventAggregator.cs
+│   │       GlobalDataRefreshEvent.cs
+│   │       ProductStockUpdatedEvent.cs
+│   │       SupplierPaymentEvent.cs
+│   │
+│   ├───Helpers
+│   │       CurrencyHelper.cs
+│   │
+│   ├───Interfaces
+│   │       IDamagedGoodsService.cs
+│   │       IDbContextScopeService.cs
+│   │
+│   ├───Mappings
+│   │       MappingProfile.cs
+│   │
+│   └───Services
+│       │   ActivityLogger.cs
+│       │   AuthService.cs
+│       │   BarcodeService.cs
+│       │   BaseService.cs
+│       │   BusinessSettingsService.cs
+│       │   CategoryService.cs
+│       │   CustomerService.cs
+│       │   DamagedGoodsService.cs
+│       │   DrawerService.cs
+│       │   EmployeeService.cs
+│       │   ExpenseService.cs
+│       │   ImagePathService.cs
+│       │   InventoryTransferService.cs
+│       │   LowStockHistoryService.cs
+│       │   MainStockService.cs
+│       │   PrinterService.cs
+│       │   ProductService.cs
+│       │   QuoteService.cs
+│       │   RestaurantTableService.cs
+│       │   SupplierInvoiceService.cs
+│       │   SupplierService.cs
+│       │   SystemPreferencesService.cs
+│       │   TransactionService.cs
+│       │
+│       └───Interfaces
+│               IActivityLogger.cs
+│               IBackupService.cs
+│               IBarcodeService.cs
+│               IBaseService.cs
+│               IBusinessSettingsService.cs
+│               ICategoryService.cs
+│               ICustomerService.cs
+│               IDrawerService.cs
+│               IEmployeeService.cs
+│               IExpenseService.cs
+│               IInventoryTransferService.cs
+│               ILowStockHistoryService.cs
+│               IMainStockService.cs
+│               IPrinterService.cs
+│               IProductService.cs
+│               IQuoteService.cs
+│               IRestaurantTableService.cs
+│               ISupplierInvoiceService.cs
+│               ISupplierService.cs
+│               ISystemPreferencesService.cs
+│               ITransactionService.cs
+│
+├───QuickTechSystems.Domain
+│   │   Class1.cs
+│   │   Class2.cs
+│   │   GlobalUsings.cs
+│   │   QuickTechSystems.Domain.csproj
+│   │
+│   ├───Entities
+│   │       ActivityLog.cs
+│   │       BusinessSetting.cs
+│   │       Category.cs
+│   │       Customer.cs
+│   │       CustomerProductPrice.cs
+│   │       DamagedGoods.cs
+│   │       Drawer.cs
+│   │       DrawerHistoryEntry.cs
+│   │       DrawerTransaction.cs
+│   │       Employee.cs
+│   │       EmployeeSalaryTransaction.cs
+│   │       Expense.cs
+│   │       InventoryHistory.cs
+│   │       InventoryTransfer.cs
+│   │       LowStockHistory.cs
+│   │       MainStock.cs
+│   │       Product.cs
+│   │       Quote.cs
+│   │       RestaurantTable.cs
+│   │       Supplier.cs
+│   │       SupplierInvoice.cs
+│   │       SupplierInvoiceDetail.cs
+│   │       SupplierTransaction.cs
+│   │       SystemPreference.cs
+│   │       Transaction.cs
+│   │       TransactionDetail.cs
+│   │
+│   ├───Enums
+│   │       TransactionType.cs
+│   │       UserRole.cs
+│   │
+│   └───Interfaces
+│       └───Repositories
+│               IGenericRepository.cs
+│               IUnitOfWork.cs
+│
+├───QuickTechSystems.Infrastructure
+│   │   Class1.cs
+│   │   GlobalUsings.cs
+│   │   QuickTechSystems.Infrastructure.csproj
+│   │
+│   ├───Data
+│   │   │   ApplicationDbContext.cs
+│   │   │   ApplicationDbContextFactory.cs
+│   │   │   DatabaseInitializer.cs
+│   │   │   ExpenseConfiguration.cs
+│   │   │
+│   │   └───Configurations
+│   │           ActivityLogConfiguration.cs
+│   │           BusinessSettingConfiguration.cs
+│   │           CategoryConfiguration.cs
+│   │           CustomerConfiguration.cs
+│   │           CustomerProductPriceConfiguration.cs
+│   │           DamagedGoodsConfiguration.cs
+│   │           DrawerConfiguration.cs
+│   │           DrawerTransactionConfiguration.cs
+│   │           EmployeeConfiguration.cs
+│   │           EmployeeSalaryTransactionConfiguration.cs
+│   │           InventoryHistoryConfiguration.cs
+│   │           InventoryTransferConfiguration.cs
+│   │           LowStockHistoryConfiguration.cs
+│   │           MainStockConfiguration.cs
+│   │           ProductConfiguration.cs
+│   │           RestaurantTableConfiguration.cs
+│   │           SupplierConfiguration.cs
+│   │           SupplierInvoiceConfiguration.cs
+│   │           SupplierInvoiceDetailConfiguration.cs
+│   │           SupplierTransactionConfiguration.cs
+│   │           SystemPreferenceConfiguration.cs
+│   │           TransactionConfiguration.cs
+│   │           TransactionDetailConfiguration.cs
+│   │
+│   ├───Migrations
+│   │       20250321193841_InitialCreate.cs
+│   │       20250321193841_InitialCreate.Designer.cs
+│   │       ApplicationDbContextModelSnapshot.cs
+│   │
+│   ├───Repositories
+│   │       GenericRepository.cs
+│   │       UnitOfWork.cs
+│   │
+│   └───Services
+│           BackupService.cs
+│           DbContextScopeService.cs
+│
+└───QuickTechSystems.Shared
+        Class1.cs
+        QuickTechSystems.Shared.csproj
