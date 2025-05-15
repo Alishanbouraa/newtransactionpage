@@ -99,7 +99,7 @@ namespace QuickTechSystems.WPF.ViewModels
             // Make sure ItemsPerBox defaults to 1 only if boxes exist
             if (item.ItemsPerBox <= 0 && item.NumberOfBoxes > 0)
             {
-                item.ItemsPerBox = 1;
+                item.ItemsPerBox = 0;
             }
         }
     }

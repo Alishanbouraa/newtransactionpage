@@ -1,8 +1,10 @@
 ﻿// Path: QuickTechSystems.WPF.Views/EditMainStockDialog.xaml.cs
 using System;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using QuickTechSystems.Application.DTOs;
 using QuickTechSystems.WPF.ViewModels;
 
@@ -10,6 +12,10 @@ namespace QuickTechSystems.WPF.Views
 {
     public partial class EditMainStockDialog : Window
     {
+        // Add regex patterns for validation
+        private static readonly Regex _decimalRegex = new Regex(@"^[0-9]*(?:\.[0-9]*)?$");
+        private static readonly Regex _integerRegex = new Regex(@"^[0-9]*$");
+
         public EditMainStockDialog()
         {
             InitializeComponent();
@@ -76,6 +82,122 @@ namespace QuickTechSystems.WPF.Views
             {
                 // Validate barcodes when focus leaves either field
                 ValidateBarcodePair(viewModel.EditingItem);
+            }
+        }
+
+        // Handle image preview on mouse down
+        private void Image_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Image image && image.Source is BitmapImage bitmapImage)
+            {
+                try
+                {
+                    // Create a new instance of BitmapImage for the preview (to avoid sharing the same instance)
+                    BitmapImage previewImage = new BitmapImage();
+                    previewImage.BeginInit();
+                    previewImage.UriSource = bitmapImage.UriSource;
+                    previewImage.CacheOption = BitmapCacheOption.OnLoad;
+                    previewImage.EndInit();
+
+                    // Create and show a simple image preview window
+                    Window previewWindow = new Window
+                    {
+                        Title = "Image Preview",
+                        Owner = this,
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                        Width = 500,
+                        Height = 500,
+                        ResizeMode = ResizeMode.CanResize,
+                        Content = new ScrollViewer
+                        {
+                            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                            Content = new Image
+                            {
+                                Source = previewImage,
+                                Stretch = System.Windows.Media.Stretch.None
+                            }
+                        }
+                    };
+
+                    previewWindow.ShowDialog();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error showing image preview: {ex.Message}",
+                        "Preview Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        // Numeric validation for decimal input (prices)
+        private void DecimalTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            var newText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
+            e.Handled = !_decimalRegex.IsMatch(newText);
+        }
+
+        // Numeric validation for integer input (quantities)
+        private void IntegerTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            var newText = textBox.Text.Insert(textBox.CaretIndex, e.Text);
+            e.Handled = !_integerRegex.IsMatch(newText);
+        }
+
+        // Allow paste only for valid numeric input
+        private void NumericTextBox_Pasting(object sender, DataObjectPastingEventArgs e)
+        {
+            if (e.DataObject.GetDataPresent(typeof(string)))
+            {
+                string text = (string)e.DataObject.GetData(typeof(string));
+                var textBox = sender as TextBox;
+                var isInteger = (string)textBox.Tag == "integer";
+                var regex = isInteger ? _integerRegex : _decimalRegex;
+
+                if (!regex.IsMatch(text))
+                {
+                    e.CancelCommand();
+                }
+            }
+            else
+            {
+                e.CancelCommand();
+            }
+        }
+
+        // Price formatting when focus enters
+        private void PriceTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                // Remove currency formatting and get the raw value
+                string rawValue = textBox.Text.Replace("$", "").Replace(",", "").Trim();
+
+                // If the value is 0 or 0.00, clear the text
+                if (decimal.TryParse(rawValue, out decimal value) && value == 0)
+                {
+                    textBox.Text = string.Empty;
+                }
+            }
+        }
+
+        // Price formatting when focus leaves
+        private void PriceTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                // If empty, set to 0 to trigger the StringFormat in the binding
+                if (string.IsNullOrWhiteSpace(textBox.Text))
+                {
+                    textBox.Text = "0";
+                }
+                // Ensure proper decimal format with dot
+                else if (decimal.TryParse(textBox.Text, out decimal value))
+                {
+                    textBox.Text = value.ToString("0.00").Replace(",", ".");
+                }
             }
         }
 

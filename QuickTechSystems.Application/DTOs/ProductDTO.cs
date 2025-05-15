@@ -32,7 +32,7 @@ namespace QuickTechSystems.Application.DTOs
         private decimal _boxPurchasePrice;
         private decimal _boxSalePrice;
         private int _numberOfBoxes;
-        private int _itemsPerBox = 1;
+        private int _itemsPerBox = 0;
         private int _minimumBoxStock;
         private int _individualItems;
         public int? SupplierInvoiceId { get; set; }

@@ -1,5 +1,4 @@
-﻿// Path: QuickTechSystems.WPF.ViewModels/BulkMainStockViewModel.Commands.cs
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -12,20 +11,22 @@ namespace QuickTechSystems.WPF.ViewModels
 {
     public partial class BulkMainStockViewModel
     {
-        /// <summary>
-        /// Adds a new row to the Items collection.
-        /// </summary>
         private void AddNewRow()
         {
+            if (!AreRequiredFieldsFilled)
+            {
+                StatusMessage = "Please select Category, Supplier, and Invoice before adding items.";
+                return;
+            }
+
             var newItem = new MainStockDTO
             {
                 IsActive = true,
                 CreatedAt = DateTime.Now,
-                ItemsPerBox = 1, // Default to 1 item per box
-                NumberOfBoxes = 1 // Default to 1 box
+                ItemsPerBox = 0,
+                NumberOfBoxes = 0
             };
 
-            // Apply bulk selection if available
             if (SelectedBulkCategory != null)
             {
                 newItem.CategoryId = SelectedBulkCategory.CategoryId;
@@ -38,29 +39,25 @@ namespace QuickTechSystems.WPF.ViewModels
                 newItem.SupplierName = SelectedBulkSupplier.Name;
             }
 
+            if (SelectedBulkInvoice != null)
+            {
+                newItem.SupplierInvoiceId = SelectedBulkInvoice.SupplierInvoiceId;
+            }
+
             Items.Add(newItem);
 
-            // Subscribe to property changes for real-time validation
             SubscribeToItemPropertyChanges(newItem);
         }
 
-        /// <summary>
-        /// Removes the specified item from the Items collection.
-        /// </summary>
-        /// <param name="item">The item to remove.</param>
         private void RemoveRow(MainStockDTO item)
         {
             if (item != null)
             {
-                // Unsubscribe before removing to prevent memory leaks
                 UnsubscribeFromItemPropertyChanges(item);
                 Items.Remove(item);
             }
         }
 
-        /// <summary>
-        /// Clears all items from the Items collection.
-        /// </summary>
         private void ClearAll()
         {
             var result = MessageBox.Show("Are you sure you want to clear all items?",
@@ -68,20 +65,16 @@ namespace QuickTechSystems.WPF.ViewModels
 
             if (result == MessageBoxResult.Yes)
             {
-                // Unsubscribe from property changes first to prevent memory leaks
                 foreach (var item in Items)
                 {
                     UnsubscribeFromItemPropertyChanges(item);
                 }
 
                 Items.Clear();
-                AddNewRow(); // Add one empty row
+                AddNewRow();
             }
         }
 
-        /// <summary>
-        /// Applies the selected bulk category to all items.
-        /// </summary>
         private void ApplyBulkCategory()
         {
             if (SelectedBulkCategory == null) return;
@@ -93,11 +86,13 @@ namespace QuickTechSystems.WPF.ViewModels
             }
 
             StatusMessage = $"Applied category '{SelectedBulkCategory.Name}' to all items.";
+
+            if (AreRequiredFieldsFilled && Items.Count == 0)
+            {
+                AddNewRow();
+            }
         }
 
-        /// <summary>
-        /// Applies the selected bulk supplier to all items.
-        /// </summary>
         private void ApplyBulkSupplier()
         {
             if (SelectedBulkSupplier == null) return;
@@ -109,11 +104,13 @@ namespace QuickTechSystems.WPF.ViewModels
             }
 
             StatusMessage = $"Applied supplier '{SelectedBulkSupplier.Name}' to all items.";
+
+            if (AreRequiredFieldsFilled && Items.Count == 0)
+            {
+                AddNewRow();
+            }
         }
 
-        /// <summary>
-        /// Applies the selected bulk invoice to all items.
-        /// </summary>
         private void ApplyBulkInvoice()
         {
             if (SelectedBulkInvoice == null) return;
@@ -127,17 +124,18 @@ namespace QuickTechSystems.WPF.ViewModels
 
             StatusMessage = $"All items will be associated with invoice '{SelectedBulkInvoice.InvoiceNumber}' (ID: {SelectedBulkInvoice.SupplierInvoiceId}).";
 
-            // Display confirmation to make it very clear
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 MessageBox.Show($"All items will be associated with invoice '{SelectedBulkInvoice.InvoiceNumber}'.\nPlease save the items to complete this association.",
                     "Invoice Selected", MessageBoxButton.OK, MessageBoxImage.Information);
             });
+
+            if (AreRequiredFieldsFilled && Items.Count == 0)
+            {
+                AddNewRow();
+            }
         }
 
-        /// <summary>
-        /// Opens a dialog to add a new category and selects it for bulk application.
-        /// </summary>
         private async Task AddNewCategoryAsync()
         {
             try
@@ -168,9 +166,6 @@ namespace QuickTechSystems.WPF.ViewModels
             }
         }
 
-        /// <summary>
-        /// Opens a dialog to add a new supplier and selects it for bulk application.
-        /// </summary>
         private async Task AddNewSupplierAsync()
         {
             try
@@ -201,14 +196,10 @@ namespace QuickTechSystems.WPF.ViewModels
             }
         }
 
-        /// <summary>
-        /// Opens a dialog to add a new supplier invoice and selects it for bulk application.
-        /// </summary>
         private async Task AddNewInvoiceAsync()
         {
             try
             {
-                // Show the quick supplier invoice dialog
                 var dialog = new QuickSupplierInvoiceDialog
                 {
                     Owner = GetOwnerWindow()
@@ -233,10 +224,6 @@ namespace QuickTechSystems.WPF.ViewModels
             }
         }
 
-        /// <summary>
-        /// Uploads an image for the specified item.
-        /// </summary>
-        /// <param name="item">The item to upload an image for.</param>
         private void UploadItemImage(MainStockDTO item)
         {
             if (item == null) return;
@@ -249,7 +236,6 @@ namespace QuickTechSystems.WPF.ViewModels
                     Title = "Select an image for the item"
                 };
 
-                // Get the owner window properly
                 var ownerWindow = GetOwnerWindow();
 
                 if (dialog.ShowDialog(ownerWindow) == true)
@@ -257,10 +243,8 @@ namespace QuickTechSystems.WPF.ViewModels
                     string imagePath = _imagePathService.SaveProductImage(dialog.FileName);
                     item.ImagePath = imagePath;
 
-                    // Force UI refresh by raising property changed notification
                     if (item is INotifyPropertyChanged notifyItem)
                     {
-                        // This will ensure the UI updates to show the image
                         var propertyChanged = item.GetType().GetField("PropertyChanged",
                             System.Reflection.BindingFlags.Instance |
                             System.Reflection.BindingFlags.NonPublic);
@@ -282,10 +266,6 @@ namespace QuickTechSystems.WPF.ViewModels
             }
         }
 
-        /// <summary>
-        /// Clears the image for the specified item.
-        /// </summary>
-        /// <param name="item">The item to clear the image for.</param>
         private void ClearItemImage(MainStockDTO item)
         {
             if (item == null || string.IsNullOrEmpty(item.ImagePath)) return;

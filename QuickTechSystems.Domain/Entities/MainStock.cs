@@ -26,7 +26,7 @@ namespace QuickTechSystems.Domain.Entities
         // Box-related properties
         public string BoxBarcode { get; set; } = string.Empty;
         public int NumberOfBoxes { get; set; }
-        public int ItemsPerBox { get; set; } = 1;
+        public int ItemsPerBox { get; set; } = 0;
         public decimal BoxPurchasePrice { get; set; }
         public decimal BoxSalePrice { get; set; }
         public int MinimumBoxStock { get; set; }

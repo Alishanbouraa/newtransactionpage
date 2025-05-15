@@ -255,19 +255,40 @@ namespace QuickTechSystems.WPF.Views
         }
 
         // Price formatting when focus leaves
+        // Price formatting when focus leaves
         private void PriceTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             if (sender is TextBox textBox)
             {
-                // If empty, set to 0 to trigger the StringFormat in the binding
-                if (string.IsNullOrWhiteSpace(textBox.Text))
+                try
                 {
-                    textBox.Text = "0";
+                    // If empty or whitespace, set to 0
+                    if (string.IsNullOrWhiteSpace(textBox.Text))
+                    {
+                        textBox.Text = "0.00";
+                        return;
+                    }
+
+                    // Try to parse the value and format it
+                    if (decimal.TryParse(textBox.Text.Replace(",", "."),
+                        System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out decimal value))
+                    {
+                        // Format to always show 2 decimal places
+                        textBox.Text = value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)
+                            .Replace(",", ".");
+                    }
+                    else
+                    {
+                        // If parsing fails, default to 0
+                        textBox.Text = "0.00";
+                    }
                 }
-                // Ensure proper decimal format with dot
-                else if (decimal.TryParse(textBox.Text, out decimal value))
+                catch
                 {
-                    textBox.Text = value.ToString("0.00").Replace(",", ".");
+                    // Last resort - handle any unexpected errors by defaulting to 0
+                    textBox.Text = "0.00";
                 }
             }
         }

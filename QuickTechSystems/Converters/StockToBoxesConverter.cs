@@ -12,7 +12,7 @@ namespace QuickTechSystems.WPF.Converters
             if (value is decimal stock)
             {
                 // Get the item per box directly from the source object
-                int itemsPerBox = 1;
+                int itemsPerBox = 0;
 
                 // Extract from explicit parameter if provided
                 if (parameter is int directInt)

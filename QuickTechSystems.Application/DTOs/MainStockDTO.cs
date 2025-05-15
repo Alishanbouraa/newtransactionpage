@@ -26,9 +26,10 @@ namespace QuickTechSystems.Application.DTOs
         private string? _imagePath;
         private string _boxBarcode = string.Empty;
         private decimal _boxPurchasePrice;
+        private bool _isUpdatingProperties = false;
         private decimal _boxSalePrice;
         private int _numberOfBoxes;
-        private int _itemsPerBox = 1;
+        private int _itemsPerBox = 0;
         private int _minimumBoxStock;
         private int _individualItems;
 
@@ -49,7 +50,10 @@ namespace QuickTechSystems.Application.DTOs
                 OnPropertyChanged();
             }
         }
-
+        public MainStockDTO()
+        {
+            PropertyChanged += MainStockDTO_PropertyChanged;
+        }
         public decimal BoxWholesalePrice
         {
             get => _boxWholesalePrice;
@@ -66,6 +70,35 @@ namespace QuickTechSystems.Application.DTOs
             {
                 _imagePath = value;
                 OnPropertyChanged();
+            }
+        }
+        private void MainStockDTO_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // We only want to update the related property if we're not already
+            // in the middle of a property change cascade
+            if (!_isUpdatingProperties)
+            {
+                _isUpdatingProperties = true;
+                try
+                {
+                    // Handle relationships between box and individual prices
+                    if (e.PropertyName == nameof(ItemsPerBox))
+                    {
+                        // Don't recalculate if both values are set by the user
+                        if (PurchasePrice > 0 && BoxPurchasePrice > 0)
+                            return;
+
+                        // Recalculate appropriate price when items per box changes
+                        if (BoxPurchasePrice > 0 && ItemsPerBox > 0)
+                            PurchasePrice = Math.Round(BoxPurchasePrice / ItemsPerBox, 2);
+                        else if (PurchasePrice > 0 && ItemsPerBox > 0)
+                            BoxPurchasePrice = Math.Round(PurchasePrice * ItemsPerBox, 2);
+                    }
+                }
+                finally
+                {
+                    _isUpdatingProperties = false;
+                }
             }
         }
 
@@ -288,7 +321,8 @@ namespace QuickTechSystems.Application.DTOs
             get => _itemsPerBox;
             set
             {
-                if (value <= 0) value = 1; // Ensure at least 1 item per box
+                // Remove the line that forces a minimum value of 1
+                // if (value <= 0) value = 1; // Ensure at least 1 item per box
                 _itemsPerBox = value;
                 OnPropertyChanged();
                 // Recalculate item purchase price and total stock
@@ -330,11 +364,20 @@ namespace QuickTechSystems.Application.DTOs
         }
 
         // Calculated property - Item Purchase Price
+        // Path: QuickTechSystems.Application.DTOs/MainStockDTO.cs
+        // Update the ItemPurchasePrice calculated property
+
+        // Calculated property - Item Purchase Price
         public decimal ItemPurchasePrice
         {
             get
             {
-                if (ItemsPerBox <= 0) return PurchasePrice;
+                // If user has directly entered a PurchasePrice, return that
+                if (PurchasePrice > 0)
+                    return PurchasePrice;
+
+                // Otherwise, calculate it from box values if possible
+                if (ItemsPerBox <= 0) return 0;
                 return BoxPurchasePrice / ItemsPerBox;
             }
         }

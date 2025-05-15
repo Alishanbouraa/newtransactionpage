@@ -18,7 +18,7 @@ namespace QuickTechSystems.WPF.Converters
                 return "0";
 
             if (!int.TryParse(values[1].ToString(), out int itemsPerBox) || itemsPerBox <= 0)
-                itemsPerBox = 1;
+                itemsPerBox = 0;
 
             // Calculate and return the number of boxes
             return Math.Floor(stock / itemsPerBox).ToString("N0");

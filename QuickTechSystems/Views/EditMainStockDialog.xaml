@@ -17,6 +17,7 @@
         <converters:FilePathToImageConverter x:Key="FilePathToImageConverter"/>
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <converters:IntZeroToBoolConverter x:Key="IntZeroToBoolConverter"/>
     </Window.Resources>
 
     <Grid Margin="20">
@@ -46,7 +47,7 @@
 
                 <!-- Category Selection -->
                 <StackPanel Grid.Column="1" Margin="10,0">
-                    <TextBlock Text="Category" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBlock Text="Category *" FontWeight="SemiBold" Margin="0,0,0,5"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -62,7 +63,7 @@
 
                 <!-- Supplier Selection -->
                 <StackPanel Grid.Column="2" Margin="10,0">
-                    <TextBlock Text="Supplier" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBlock Text="Supplier *" FontWeight="SemiBold" Margin="0,0,0,5"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -94,24 +95,32 @@
                    Margin="0,0,20,0"/>
 
                 <!-- Invoice Selection -->
-                <ComboBox Grid.Column="1" 
-                  ItemsSource="{Binding DraftInvoices}" 
-                  SelectedItem="{Binding SelectedInvoice}"
-                  Margin="0,0,10,0">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock>
-                                <TextBlock.Text>
-                                    <MultiBinding StringFormat="{}{0} - {1} ({2})">
-                                        <Binding Path="InvoiceNumber"/>
-                                        <Binding Path="SupplierName"/>
-                                        <Binding Path="Status"/>
-                                    </MultiBinding>
-                                </TextBlock.Text>
-                            </TextBlock>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                <Grid Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ComboBox Grid.Column="0" 
+                      ItemsSource="{Binding DraftInvoices}" 
+                      SelectedItem="{Binding SelectedInvoice}"
+                      Margin="0,0,10,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock>
+                                    <Run Text="{Binding InvoiceNumber}"/>
+                                    <Run Text=" - "/>
+                                    <Run Text="{Binding SupplierName}"/>
+                                    <Run Text=" ("/>
+                                    <Run Text="{Binding Status}"/>
+                                    <Run Text=")"/>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <Button Grid.Column="1" Content="+" Command="{Binding AddNewInvoiceCommand}" Width="30" Margin="0,0,0,0"/>
+                </Grid>
             </Grid>
         </Border>
 
@@ -151,6 +160,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
                             <!-- Name -->
@@ -158,44 +168,79 @@
                             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditingItem.Name, UpdateSourceTrigger=PropertyChanged}" 
                                      Height="25" Margin="0,0,0,10"/>
 
+                            <!-- Individual Items field label - Mark as required -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Individual Items: *" Margin="0,0,5,5" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" 
+                                     Text="{Binding EditingItem.IndividualItems, UpdateSourceTrigger=PropertyChanged}" 
+                                     Height="25" Margin="0,0,0,10"
+                                     PreviewTextInput="IntegerTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"/>
+
                             <!-- # of Boxes -->
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="# of Boxes:" Margin="0,0,5,5" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding EditingItem.NumberOfBoxes, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="25" Margin="0,0,0,10"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="# of Boxes:" Margin="0,0,5,5" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" 
+                                     Text="{Binding EditingItem.NumberOfBoxes, UpdateSourceTrigger=PropertyChanged}" 
+                                     Height="25" Margin="0,0,0,10"
+                                     PreviewTextInput="IntegerTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"/>
 
                             <!-- Items per Box -->
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Items/Box:" Margin="0,0,5,5" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EditingItem.ItemsPerBox, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="25" Margin="0,0,0,10"/>
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Items/Box:" Margin="0,0,5,5" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding EditingItem.ItemsPerBox, UpdateSourceTrigger=PropertyChanged}" 
+                                     Height="25" Margin="0,0,0,10"
+                                     PreviewTextInput="IntegerTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"/>
 
                             <!-- Active -->
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Active:" Margin="0,0,5,5" VerticalAlignment="Center"/>
-                            <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding EditingItem.IsActive, UpdateSourceTrigger=PropertyChanged}" 
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Active:" Margin="0,0,5,5" VerticalAlignment="Center"/>
+                            <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding EditingItem.IsActive, UpdateSourceTrigger=PropertyChanged}" 
                                       VerticalAlignment="Center" Margin="0,0,0,10"/>
 
                             <!-- Product Image -->
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Product Image:" Margin="0,0,5,5" VerticalAlignment="Top"/>
-                            <Grid Grid.Row="4" Grid.Column="1">
-                                <StackPanel>
-                                    <!-- Upload/Clear buttons -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                        <Button Content="Upload Image" 
-                                                Command="{Binding UploadImageCommand}"
-                                                Width="100" Height="25" Margin="0,0,5,0"/>
-                                        <Button Content="Clear Image" 
-                                                Command="{Binding ClearImageCommand}"
-                                                Width="100" Height="25"
-                                                Visibility="{Binding EditingItem.ImagePath, Converter={StaticResource StringToVisibilityConverter}}"/>
-                                    </StackPanel>
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Product Image:" Margin="0,0,5,5" VerticalAlignment="Top"/>
+                            <Grid Grid.Row="5" Grid.Column="1">
+                                <Grid>
+                                    <!-- No image state -->
+                                    <Button Content="Upload Image" 
+                                        Command="{Binding UploadImageCommand}"
+                                        Height="25" Width="120" HorizontalAlignment="Left"
+                                        Visibility="{Binding EditingItem.ImagePath, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=inverse}"/>
 
-                                    <!-- Image Display -->
-                                    <Border Height="120" BorderBrush="#E0E0E0" BorderThickness="1"
-                                            Visibility="{Binding EditingItem.ImagePath, Converter={StaticResource StringToVisibilityConverter}}">
-                                        <Image Source="{Binding EditingItem.ImagePath, Converter={StaticResource FilePathToImageConverter}}" 
-                                               Stretch="Uniform" Margin="5"/>
-                                    </Border>
-                                </StackPanel>
+                                    <!-- With image state -->
+                                    <Grid Visibility="{Binding EditingItem.ImagePath, Converter={StaticResource StringToVisibilityConverter}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Image Preview -->
+                                        <Border Grid.Column="0" Width="50" Height="50" 
+                                            BorderBrush="#E0E0E0" BorderThickness="1" 
+                                            Margin="0,0,10,0">
+                                            <Image Source="{Binding EditingItem.ImagePath, Converter={StaticResource FilePathToImageConverter}}" 
+                                               Stretch="Uniform" 
+                                               MouseDown="Image_MouseDown"/>
+                                        </Border>
+
+                                        <!-- Clear Button -->
+                                        <Button Grid.Column="1" Content="Clear Image" 
+                                            Command="{Binding ClearImageCommand}"
+                                            Height="25" Width="100" 
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Grid>
                             </Grid>
+
+                            <!-- Image Display Area (larger preview) -->
+                            <Border Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" 
+                                Height="120" Margin="0,10,0,0"
+                                BorderBrush="#E0E0E0" BorderThickness="1"
+                                Visibility="{Binding EditingItem.ImagePath, Converter={StaticResource StringToVisibilityConverter}}">
+                                <Image Source="{Binding EditingItem.ImagePath, Converter={StaticResource FilePathToImageConverter}}" 
+                                   Stretch="Uniform" 
+                                   Margin="5"/>
+                            </Border>
                         </Grid>
                     </Grid>
                 </Border>
@@ -284,43 +329,70 @@
                             <!-- Box Purchase Price -->
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Box Purchase:" Margin="0,0,5,5"/>
                             <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding EditingItem.BoxPurchasePrice, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="25" Margin="0,20,5,10"/>
+                                     Height="25" Margin="0,20,5,10"
+                                     PreviewTextInput="DecimalTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"
+                                     GotFocus="PriceTextBox_GotFocus"
+                                     LostFocus="PriceTextBox_LostFocus"/>
 
-                            <!-- Item Purchase Price -->
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Item Purchase:" Margin="0,0,0,5"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditingItem.ItemPurchasePrice, StringFormat=N2, Mode=OneWay}" 
-                                     Height="25" Margin="0,20,0,10"
-                                     IsReadOnly="True" Background="#F9F9F9"/>
+                            <!-- Item Purchase Price (editable) -->
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Item Purchase: *" Margin="0,0,0,5"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditingItem.PurchasePrice, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" 
+         Height="25" Margin="0,20,0,10"
+         PreviewTextInput="DecimalTextBox_PreviewTextInput"
+         DataObject.Pasting="NumericTextBox_Pasting"
+         GotFocus="PriceTextBox_GotFocus"
+         LostFocus="PriceTextBox_LostFocus"/>
 
                             <!-- Box Wholesale Price -->
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Box Wholesale:" Margin="0,0,5,5"/>
                             <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding EditingItem.BoxWholesalePrice, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="25" Margin="0,20,5,10"/>
+                                     Height="25" Margin="0,20,5,10"
+                                     PreviewTextInput="DecimalTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"
+                                     GotFocus="PriceTextBox_GotFocus"
+                                     LostFocus="PriceTextBox_LostFocus"/>
 
                             <!-- Item Wholesale Price -->
                             <TextBlock Grid.Row="1" Grid.Column="1" Text="Item Wholesale:" Margin="0,0,0,5"/>
                             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding EditingItem.WholesalePrice, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="25" Margin="0,20,0,10"/>
+                                     Height="25" Margin="0,20,0,10"
+                                     PreviewTextInput="DecimalTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"
+                                     GotFocus="PriceTextBox_GotFocus"
+                                     LostFocus="PriceTextBox_LostFocus"/>
 
                             <!-- Box Sale Price -->
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Box Sale:" Margin="0,0,5,5"/>
                             <TextBox Grid.Row="2" Grid.Column="0" Text="{Binding EditingItem.BoxSalePrice, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="25" Margin="0,20,5,10"/>
+                                     Height="25" Margin="0,20,5,10"
+                                     PreviewTextInput="DecimalTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"
+                                     GotFocus="PriceTextBox_GotFocus"
+                                     LostFocus="PriceTextBox_LostFocus"/>
 
                             <!-- Item Sale Price -->
                             <TextBlock Grid.Row="2" Grid.Column="1" Text="Item Sale:" Margin="0,0,0,5"/>
                             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EditingItem.SalePrice, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="25" Margin="0,20,0,10"/>
+                                     Height="25" Margin="0,20,0,10"
+                                     PreviewTextInput="DecimalTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"
+                                     GotFocus="PriceTextBox_GotFocus"
+                                     LostFocus="PriceTextBox_LostFocus"/>
 
                             <!-- Min Stock -->
                             <TextBlock Grid.Row="3" Grid.Column="0" Text="Min Stock:" Margin="0,0,5,5"/>
                             <TextBox Grid.Row="3" Grid.Column="0" Text="{Binding EditingItem.MinimumStock, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="25" Margin="0,20,5,10"/>
+                                     Height="25" Margin="0,20,5,10"
+                                     PreviewTextInput="IntegerTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"/>
 
                             <!-- Min Boxes -->
                             <TextBlock Grid.Row="3" Grid.Column="1" Text="Min Boxes:" Margin="0,0,0,5"/>
                             <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding EditingItem.MinimumBoxStock, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="25" Margin="0,20,0,10"/>
+                                     Height="25" Margin="0,20,0,10"
+                                     PreviewTextInput="IntegerTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"/>
 
                             <!-- Current Stock (read-only) -->
                             <TextBlock Grid.Row="4" Grid.Column="0" Text="Current Stock:" Margin="0,0,5,5"/>

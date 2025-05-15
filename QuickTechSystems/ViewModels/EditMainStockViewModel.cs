@@ -10,6 +10,7 @@ using QuickTechSystems.Application.Events;
 using QuickTechSystems.Application.Services;
 using QuickTechSystems.Application.Services.Interfaces;
 using QuickTechSystems.WPF.Commands;
+using QuickTechSystems.WPF.Views;
 
 namespace QuickTechSystems.WPF.ViewModels
 {
@@ -43,7 +44,15 @@ namespace QuickTechSystems.WPF.ViewModels
         public MainStockDTO EditingItem
         {
             get => _editingItem;
-            set => SetProperty(ref _editingItem, value);
+            set
+            {
+                if (value != null && value.IndividualItems <= 0)
+                {
+                    // Set individual items to be equal to current stock
+                    value.IndividualItems = (int)value.CurrentStock;
+                }
+                SetProperty(ref _editingItem, value);
+            }
         }
 
         public ObservableCollection<CategoryDTO> Categories
@@ -131,6 +140,7 @@ namespace QuickTechSystems.WPF.ViewModels
         public ICommand ClearImageCommand { get; private set; }
         public ICommand AddNewCategoryCommand { get; private set; }
         public ICommand AddNewSupplierCommand { get; private set; }
+        public ICommand AddNewInvoiceCommand { get; private set; }
         public ICommand ClearInvoiceCommand { get; private set; }
         public ICommand LookupProductCommand { get; private set; }
         public ICommand LookupBoxBarcodeCommand { get; private set; }
@@ -167,6 +177,7 @@ namespace QuickTechSystems.WPF.ViewModels
             ClearImageCommand = new RelayCommand(_ => ClearImage());
             AddNewCategoryCommand = new AsyncRelayCommand(async _ => await AddNewCategoryAsync());
             AddNewSupplierCommand = new AsyncRelayCommand(async _ => await AddNewSupplierAsync());
+            AddNewInvoiceCommand = new AsyncRelayCommand(async _ => await AddNewInvoiceAsync());
             ClearInvoiceCommand = new RelayCommand(_ => ClearInvoice());
             LookupProductCommand = new AsyncRelayCommand<MainStockDTO>(async item => await LookupProductAsync(item));
             LookupBoxBarcodeCommand = new AsyncRelayCommand<MainStockDTO>(async item => await LookupBoxBarcodeAsync(item));
@@ -174,7 +185,14 @@ namespace QuickTechSystems.WPF.ViewModels
 
         public async Task InitializeAsync(MainStockDTO item)
         {
-            EditingItem = item ?? new MainStockDTO { IsActive = true };
+            // Create a new item if none provided
+            EditingItem = item ?? new MainStockDTO
+            {
+                IsActive = true,
+                ItemsPerBox = 0,  // Changed from 1 to 0
+                NumberOfBoxes = 0, // Already defaulting to 0
+                IndividualItems = 1 // Ensure we have at least 1 individual item by default
+            };
 
             try
             {
@@ -318,13 +336,16 @@ namespace QuickTechSystems.WPF.ViewModels
                     return;
                 }
 
-                // Ensure data integrity
+
                 if (string.IsNullOrWhiteSpace(EditingItem.BoxBarcode) && !string.IsNullOrWhiteSpace(EditingItem.Barcode))
                     EditingItem.BoxBarcode = $"BX{EditingItem.Barcode}";
 
-                if (EditingItem.ItemsPerBox <= 0)
-                    EditingItem.ItemsPerBox = 1;
 
+                // Ensure consistent pricing
+                EnsureConsistentPricing(EditingItem);
+
+                // Set CurrentStock based on IndividualItems
+                EditingItem.CurrentStock = EditingItem.IndividualItems;
 
                 // Validate the item
                 if (!ValidateItem())
@@ -461,6 +482,7 @@ namespace QuickTechSystems.WPF.ViewModels
                 IsSaving = false;
             }
         }
+
         private void Cancel()
         {
             DialogResult = false;
@@ -580,6 +602,27 @@ namespace QuickTechSystems.WPF.ViewModels
             }
         }
 
+        private async Task AddNewInvoiceAsync()
+        {
+            try
+            {
+                var dialog = new QuickSupplierInvoiceDialog();
+                var result = dialog.ShowDialog();
+
+                if (result == true && dialog.CreatedInvoice != null)
+                {
+                    DraftInvoices.Add(dialog.CreatedInvoice);
+                    SelectedInvoice = dialog.CreatedInvoice;
+                    StatusMessage = $"Invoice '{dialog.CreatedInvoice.InvoiceNumber}' created successfully";
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error creating invoice: {ex.Message}");
+                StatusMessage = $"Error creating invoice: {ex.Message}";
+            }
+        }
+
         private void ClearInvoice()
         {
             SelectedInvoice = null;
@@ -597,11 +640,19 @@ namespace QuickTechSystems.WPF.ViewModels
 
             try
             {
+                StatusMessage = "Searching for product...";
+                IsSaving = true;
+
                 var existingProduct = await _mainStockService.GetByBarcodeAsync(item.Barcode);
 
                 if (existingProduct != null)
                 {
+                    // Preserve important user-entered fields
+                    int numberOfBoxes = item.NumberOfBoxes;
+                    int individualItems = item.IndividualItems;
+
                     // Update fields from existing product
+                    item.MainStockId = existingProduct.MainStockId;
                     item.Name = existingProduct.Name;
                     item.Description = existingProduct.Description;
                     item.CategoryId = existingProduct.CategoryId;
@@ -609,13 +660,33 @@ namespace QuickTechSystems.WPF.ViewModels
                     item.SupplierId = existingProduct.SupplierId;
                     item.SupplierName = existingProduct.SupplierName;
                     item.PurchasePrice = existingProduct.PurchasePrice;
+                    item.WholesalePrice = existingProduct.WholesalePrice;
                     item.SalePrice = existingProduct.SalePrice;
                     item.BoxBarcode = existingProduct.BoxBarcode;
                     item.BoxPurchasePrice = existingProduct.BoxPurchasePrice;
+                    item.BoxWholesalePrice = existingProduct.BoxWholesalePrice;
                     item.BoxSalePrice = existingProduct.BoxSalePrice;
-                    item.ItemsPerBox = existingProduct.ItemsPerBox;
+                    item.ItemsPerBox = existingProduct.ItemsPerBox > 0 ? existingProduct.ItemsPerBox : 1;
                     item.MinimumStock = existingProduct.MinimumStock;
                     item.MinimumBoxStock = existingProduct.MinimumBoxStock;
+                    item.Speed = existingProduct.Speed;
+                    item.IsActive = existingProduct.IsActive;
+                    item.ImagePath = existingProduct.ImagePath;
+                    item.CurrentStock = existingProduct.CurrentStock;
+
+                    // Restore individual items or use current stock if it's greater than zero
+                    if (individualItems > 0)
+                        item.IndividualItems = individualItems;
+                    else if (existingProduct.CurrentStock > 0)
+                        item.IndividualItems = (int)existingProduct.CurrentStock;
+                    else
+                        item.IndividualItems = 1; // Ensure at least 1
+
+                    // Restore the number of boxes the user entered
+                    if (numberOfBoxes > 0)
+                        item.NumberOfBoxes = numberOfBoxes;
+                    else
+                        item.NumberOfBoxes = existingProduct.NumberOfBoxes;
 
                     // Update selected values
                     SelectedCategory = Categories?.FirstOrDefault(c => c.CategoryId == item.CategoryId);
@@ -625,13 +696,27 @@ namespace QuickTechSystems.WPF.ViewModels
                 }
                 else
                 {
-                    StatusMessage = "New product - please fill in the details";
+                    // New product - ensure box barcode if item barcode is provided
+                    if (string.IsNullOrWhiteSpace(item.BoxBarcode))
+                    {
+                        item.BoxBarcode = $"BX{item.Barcode}";
+                    }
+                    else if (item.BoxBarcode == item.Barcode)
+                    {
+                        item.BoxBarcode = $"BX{item.Barcode}";
+                    }
+
+                    StatusMessage = "New product. Please enter details.";
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error looking up product: {ex.Message}");
                 StatusMessage = $"Error looking up product: {ex.Message}";
+            }
+            finally
+            {
+                IsSaving = false;
             }
         }
 
@@ -642,11 +727,19 @@ namespace QuickTechSystems.WPF.ViewModels
 
             try
             {
+                StatusMessage = "Searching for product by box barcode...";
+                IsSaving = true;
+
                 var existingProduct = await _mainStockService.GetByBoxBarcodeAsync(item.BoxBarcode);
 
                 if (existingProduct != null)
                 {
+                    // Keep the current box quantities
+                    int numberOfBoxes = item.NumberOfBoxes > 0 ? item.NumberOfBoxes : 1;
+                    int individualItems = item.IndividualItems;
+
                     // Update fields from existing product
+                    item.MainStockId = existingProduct.MainStockId;
                     item.Name = existingProduct.Name;
                     item.Barcode = existingProduct.Barcode;
                     item.Description = existingProduct.Description;
@@ -655,12 +748,28 @@ namespace QuickTechSystems.WPF.ViewModels
                     item.SupplierId = existingProduct.SupplierId;
                     item.SupplierName = existingProduct.SupplierName;
                     item.PurchasePrice = existingProduct.PurchasePrice;
+                    item.WholesalePrice = existingProduct.WholesalePrice;
                     item.SalePrice = existingProduct.SalePrice;
                     item.BoxPurchasePrice = existingProduct.BoxPurchasePrice;
+                    item.BoxWholesalePrice = existingProduct.BoxWholesalePrice;
                     item.BoxSalePrice = existingProduct.BoxSalePrice;
-                    item.ItemsPerBox = existingProduct.ItemsPerBox;
+                    item.ItemsPerBox = existingProduct.ItemsPerBox > 0 ? existingProduct.ItemsPerBox : 1;
                     item.MinimumStock = existingProduct.MinimumStock;
                     item.MinimumBoxStock = existingProduct.MinimumBoxStock;
+                    item.Speed = existingProduct.Speed;
+                    item.IsActive = existingProduct.IsActive;
+                    item.ImagePath = existingProduct.ImagePath;
+                    item.CurrentStock = existingProduct.CurrentStock;
+                    item.IndividualItems = (int)existingProduct.CurrentStock;
+
+                    // Restore the number of boxes
+                    item.NumberOfBoxes = numberOfBoxes;
+
+                    // If individualItems was set, keep it
+                    if (individualItems > 0)
+                    {
+                        item.IndividualItems = individualItems;
+                    }
 
                     // Update selected values
                     SelectedCategory = Categories?.FirstOrDefault(c => c.CategoryId == item.CategoryId);
@@ -670,7 +779,30 @@ namespace QuickTechSystems.WPF.ViewModels
                 }
                 else
                 {
-                    StatusMessage = "No product found with this box barcode";
+                    // If not found and the box barcode doesn't start with "BX", try with it
+                    if (!item.BoxBarcode.StartsWith("BX", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var modifiedBoxBarcode = $"BX{item.BoxBarcode}";
+                        try
+                        {
+                            var productWithPrefix = await _mainStockService.GetByBoxBarcodeAsync(modifiedBoxBarcode);
+                            if (productWithPrefix != null)
+                            {
+                                // Update the box barcode to the correct format
+                                item.BoxBarcode = modifiedBoxBarcode;
+
+                                // Recursively call this method again with the updated barcode
+                                await LookupBoxBarcodeAsync(item);
+                                return;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Error looking up modified box barcode: {ex.Message}");
+                        }
+                    }
+
+                    StatusMessage = "No product found with this box barcode.";
                 }
             }
             catch (Exception ex)
@@ -678,29 +810,121 @@ namespace QuickTechSystems.WPF.ViewModels
                 Debug.WriteLine($"Error looking up box barcode: {ex.Message}");
                 StatusMessage = $"Error looking up box barcode: {ex.Message}";
             }
+            finally
+            {
+                IsSaving = false;
+            }
         }
 
+        /// <summary>
+        /// Ensures consistent pricing for the item
+        /// </summary>
+        /// <summary>
+        /// Ensures consistent pricing for the item, respecting manually entered values
+        /// </summary>
+        private void EnsureConsistentPricing(MainStockDTO item)
+        {
+            // If user has entered both Box Purchase Price and Purchase Price directly
+            // We don't adjust either one - respect both user inputs
+            if (item.BoxPurchasePrice > 0 && item.PurchasePrice > 0)
+            {
+                // Do nothing - respect both values as the user entered them
+            }
+            // Calculate purchase price from box price if needed
+            else if (item.PurchasePrice <= 0 && item.BoxPurchasePrice > 0 && item.ItemsPerBox > 0)
+            {
+                item.PurchasePrice = Math.Round(item.BoxPurchasePrice / item.ItemsPerBox, 2);
+            }
+            // Calculate box purchase price from item price if needed (only if ItemsPerBox is set)
+            else if (item.BoxPurchasePrice <= 0 && item.PurchasePrice > 0 && item.ItemsPerBox > 0)
+            {
+                item.BoxPurchasePrice = Math.Round(item.PurchasePrice * item.ItemsPerBox, 2);
+            }
+
+            // Handle Wholesale Price similarly - only if ItemsPerBox > 0
+            if (item.BoxWholesalePrice > 0 && item.WholesalePrice > 0)
+            {
+                // Respect both user inputs
+            }
+            // Calculate wholesale price from box wholesale price if needed
+            else if (item.WholesalePrice <= 0 && item.BoxWholesalePrice > 0 && item.ItemsPerBox > 0)
+            {
+                item.WholesalePrice = Math.Round(item.BoxWholesalePrice / item.ItemsPerBox, 2);
+            }
+            // Calculate box wholesale price from item wholesale price if needed (only if ItemsPerBox is set)
+            else if (item.BoxWholesalePrice <= 0 && item.WholesalePrice > 0 && item.ItemsPerBox > 0)
+            {
+                item.BoxWholesalePrice = Math.Round(item.WholesalePrice * item.ItemsPerBox, 2);
+            }
+
+            // Handle Sale Price similarly - only if ItemsPerBox > 0
+            if (item.BoxSalePrice > 0 && item.SalePrice > 0)
+            {
+                // Respect both user inputs
+            }
+            // Calculate sale price from box sale price if needed
+            else if (item.SalePrice <= 0 && item.BoxSalePrice > 0 && item.ItemsPerBox > 0)
+            {
+                item.SalePrice = Math.Round(item.BoxSalePrice / item.ItemsPerBox, 2);
+            }
+            // Calculate box sale price from item sale price if needed (only if ItemsPerBox is set)
+            else if (item.BoxSalePrice <= 0 && item.SalePrice > 0 && item.ItemsPerBox > 0)
+            {
+                item.BoxSalePrice = Math.Round(item.SalePrice * item.ItemsPerBox, 2);
+            }
+
+            // Ensure we have a valid wholesale price (default to purchase price + 10% if not set)
+            if (item.WholesalePrice <= 0 && item.PurchasePrice > 0)
+            {
+                item.WholesalePrice = Math.Round(item.PurchasePrice * 1.1m, 2);
+            }
+
+            // Ensure we have a valid sale price (default to purchase price + 20% if not set)
+            if (item.SalePrice <= 0 && item.PurchasePrice > 0)
+            {
+                item.SalePrice = Math.Round(item.PurchasePrice * 1.2m, 2);
+            }
+
+            // Only set box prices from item prices if ItemsPerBox is valid
+            if (item.ItemsPerBox > 0)
+            {
+                // Ensure we have a valid box wholesale price (default to wholesale price * ItemsPerBox if not set)
+                if (item.BoxWholesalePrice <= 0 && item.WholesalePrice > 0)
+                {
+                    item.BoxWholesalePrice = Math.Round(item.WholesalePrice * item.ItemsPerBox, 2);
+                }
+
+                // Ensure we have a valid box sale price (default to sale price * ItemsPerBox if not set)
+                if (item.BoxSalePrice <= 0 && item.SalePrice > 0)
+                {
+                    item.BoxSalePrice = Math.Round(item.SalePrice * item.ItemsPerBox, 2);
+                }
+            }
+        }
         private bool ValidateItem()
         {
             var errors = new List<string>();
 
+            // Required fields validation
             if (string.IsNullOrWhiteSpace(EditingItem.Name))
                 errors.Add("• Item name is required");
 
             if (EditingItem.CategoryId <= 0)
                 errors.Add("• Please select a category");
 
-            if (EditingItem.SalePrice <= 0)
-                errors.Add("• Sale price must be greater than zero");
+            if (EditingItem.SupplierId <= 0 || !EditingItem.SupplierId.HasValue)
+                errors.Add("• Please select a supplier");
 
-            if (EditingItem.PurchasePrice < 0)
-                errors.Add("• Purchase price cannot be negative");
+            // At least one pricing option must be provided
+            if (EditingItem.PurchasePrice <= 0 && EditingItem.BoxPurchasePrice <= 0)
+                errors.Add("• Either item purchase price or box purchase price is required");
 
-            if (EditingItem.MinimumStock < 0)
-                errors.Add("• Minimum stock cannot be negative");
+            if (EditingItem.SalePrice <= 0 && EditingItem.BoxSalePrice <= 0)
+                errors.Add("• Either item sale price or box sale price is required");
 
-            if (EditingItem.ItemsPerBox <= 0)
-                errors.Add("• Items per box must be greater than zero");
+            // Individual items quantity is required
+            if (EditingItem.IndividualItems <= 0)
+                errors.Add("• Individual items quantity must be greater than zero");
 
             // Add validation for invoice selection
             if (SelectedInvoice == null)

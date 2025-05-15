@@ -73,6 +73,11 @@ namespace QuickTechSystems.WPF.ViewModels
                     async _ => await TransferToStoreAsync(),
                     _ => !IsSaving && SelectedItem != null && SelectedStoreProduct != null && TransferQuantity > 0);
 
+                // Add the new Box to Individual command
+                BoxToIndividualCommand = new AsyncRelayCommand(
+                    async _ => await ConvertBoxToIndividualAsync(),
+                    _ => !IsSaving && SelectedItem != null && SelectedItem.NumberOfBoxes > 0);
+
                 NextPageCommand = new RelayCommand(
                     _ => CurrentPage++,
                     _ => !IsLastPage && !IsSaving);

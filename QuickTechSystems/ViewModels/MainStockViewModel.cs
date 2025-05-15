@@ -444,7 +444,7 @@ namespace QuickTechSystems.WPF.ViewModels
         public ICommand ClearImageCommand { get; private set; }
         public ICommand TransferToStoreCommand { get; private set; }
         public ICommand SaveTransferCommand { get; private set; }
-
+        public ICommand BoxToIndividualCommand { get; private set; }
         // Pagination commands
         public ICommand NextPageCommand { get; private set; }
         public ICommand PreviousPageCommand { get; private set; }
